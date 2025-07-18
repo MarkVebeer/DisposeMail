@@ -8,9 +8,10 @@ config.init();
 let db = database.init();
 database.ensureDefaultAdmin(db);
 let domainName = config.getConfig('DomainName');
+let httpPort = config.getConfig('HttpPort') || 80;
 
 smtpSrv.start(db, 25);
-httpSrv.start(db, domainName, 80);
+httpSrv.start(db, domainName, httpPort);
 
 function cleanupInactiveAddresses() {
   const inactive = database.getInactiveAddresses(db, 7);
