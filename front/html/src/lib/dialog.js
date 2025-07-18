@@ -59,9 +59,10 @@ function conf(text, callback){
 	div.id = "dialogRoot";
 	div.style.width = "100%";
 	div.style.height = "100%";
-	div.style.position = "absolute";
+	div.style.position = "fixed";
 	div.style.top = "0";
 	div.style.left = "0";
+	div.style.zIndex = "9999";
 	div.innerHTML = dialogConfString;
 
 	document.getElementsByTagName("body")[0].appendChild(div);
@@ -78,9 +79,10 @@ function alrt(text, callback){
 	div.id = "dialogRoot";
 	div.style.width = "100%";
 	div.style.height = "100%";
-	div.style.position = "absolute";
+	div.style.position = "fixed";
 	div.style.top = "0";
 	div.style.left = "0";
+	div.style.zIndex = "9999";
 	div.innerHTML = dialogAlertString;
 
 	document.getElementsByTagName("body")[0].appendChild(div);
