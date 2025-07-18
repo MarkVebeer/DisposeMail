@@ -1,6 +1,6 @@
 # DisposeMail, a Nortix Mail fork
 
-# Run without docker 🖥️
+# Run without docker 
 1. make sure that nodejs & npm is installed
 2. run `npm install`
 4. run `cd front`
@@ -12,7 +12,8 @@
 or use the combined command: `npm install && cd front && npm install && npm run build && cd .. && node main.js`  
 The http server will be listening on port 80(you can change that in config.json). Make sure that your port 25 is accessible to receive mails
 
-# Run with docker 🐋 (not tested since the fork, if you ahve problems and you manange to fix the docker file make sure to PR)
+# Run with docker  
+(not tested since the fork and changes, if you have problems and you manange to fix the docker file make sure to PR)
 1. git clone / download this repo
 2. run `docker compose up -d`
 
@@ -28,4 +29,4 @@ TLS/SSL certificates are no longer required or used for domain detection. If you
 The current mail transfer protocol is very old and by default it doesn't require TLS to function. This means that when another server sends an email to your server, anyone in between can theoretically read the mail if they actively try to intercept. However, this is unlikely to happen as the people who have this capability are mostly ISPs and hosting providers. For better security, set up tls if you mind this XD.
 
 # Contributing 
-This repository accepts pull request. Feel free to contribute
+This repository accepts pull request. Feel free to contribute!
