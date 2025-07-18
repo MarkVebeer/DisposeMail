@@ -1,4 +1,7 @@
 {
 	"MailCountPerPage" : 10,
-	"MailRefreshInterval" : 3
+	"MailRefreshInterval" : 3,
+	"DomainName": "home.markveber.hu",
+	"AdminUsername": "admin",
+	"AdminPassword": "kaki"
 }

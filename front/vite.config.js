@@ -17,10 +17,9 @@ export default defineConfig({
 		rollupOptions: {
 			
 			input: {
-				
 				main: './html/index.html',
 				manage: './html/manage.html',
-
+				login: './html/login.html',
 			},
 
 		},

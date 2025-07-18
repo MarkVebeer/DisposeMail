@@ -53,7 +53,14 @@ const mod = {
 		  document.body.removeChild(element)
 
 		}
-  	}
+  	},
+
+	getCurrentUser: (callback) => {
+		fetch('/me', { method: 'POST' })
+			.then(res => res.ok ? res.json() : null)
+			.then(data => callback(data))
+			.catch(() => callback(null));
+	}
 
 }
 

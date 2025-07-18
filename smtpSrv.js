@@ -1,8 +1,6 @@
 "use strict";
 import { SMTPServer as ssrv } from 'smtp-server'
 import { simpleParser } from 'mailparser'
-import fs from 'fs'
-import path from 'path'
 import h from './helper.js'
 
 let mod = {
@@ -72,35 +70,6 @@ let mod = {
 
 		}
 
-		try {
-
-			//automatically detect public / private key
-			const files = fs.readdirSync("./data");
-			for(let fileName of files){
-
-				let ext = path.extname(fileName);
-				if(ext != ".db" && ext != ".json"){
-
-					let content = fs.readFileSync("./data/" + fileName, 'utf8');
-					if(content.includes("PRIVATE KEY")){
-						opt.key = content;
-					}
-
-					if(content.includes("BEGIN CERTIFICATE")){
-						opt.cert = content;
-					}
-
-				}
-
-			}
-
-		} catch (err) {
-
-			console.log("read directory fail");
-			console.log(err);
-
-		}
-			
 		const server = new ssrv(opt);
 		server.on('error', (err) => {
 

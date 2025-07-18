@@ -1,157 +1,138 @@
 <script>
+import { onMount } from 'svelte';
+import f from './helper.js';
+import dialog from './lib/dialog.js';
+dialog.init();
 
-	import { onMount } from 'svelte';
-	import f from './helper.js'
-	import dialog from './lib/dialog.js'
-	dialog.init();
+let hostName = '';
+let addresses = [];
+let users = [];
+let selectedUser = null;
+let newPassword = '';
+let isAdmin = false;
+let error = '';
 
-	let hostName = '@' + window.location.host;
-	let addresses = [];
+// Registration fields
+let regUsername = '';
+let regPassword = '';
+let regIsAdmin = false;
+let regError = '';
 
-	let selectedAddress = null;
-	let newAddressText = "";
+function refreshUsers() {
+  f.fetchPost('/admin/users', {}, (data) => {
+    if (data.error) {
+      error = data.error;
+      users = [];
+    } else {
+      users = data.users;
+      error = '';
+    }
+  });
+}
 
-	function refreshAddress(){
+function registerUser() {
+  regError = '';
+  if (!regUsername || !regPassword) {
+    regError = 'All fields required';
+    return;
+  }
+  f.fetchPost('/admin/registerUser', {
+    username: regUsername,
+    password: regPassword,
+    isAdmin: regIsAdmin
+  }, (data) => {
+    if (data.success) {
+      regUsername = '';
+      regPassword = '';
+      regIsAdmin = false;
+      regError = '';
+      refreshUsers();
+    } else {
+      regError = data.error || 'Registration failed';
+    }
+  });
+}
 
-		f.fetchPost('/addresses', {}, (data) => {
+function deleteUser() {
+  if (!selectedUser) return;
+  dialog.conf('Delete this user?', (res) => {
+    if (res) {
+      f.fetchPost('/admin/deleteUser', { id: selectedUser.id }, (data) => {
+        if (data.success) {
+          refreshUsers();
+        } else {
+          dialog.alrt(data.error || 'Failed to delete user');
+        }
+      });
+    }
+  });
+}
 
-			addresses = data.addresses;
-			if (data.addresses.length > 0){
-			
-				selectedAddress = data.addresses[data.addresses.length-1].addr;
+function changePassword() {
+  if (!selectedUser || !newPassword) return;
+  f.fetchPost('/admin/changePassword', { id: selectedUser.id, password: newPassword }, (data) => {
+    if (data.success) {
+      dialog.alrt('Password changed');
+      newPassword = '';
+    } else {
+      dialog.alrt(data.error || 'Failed to change password');
+    }
+  });
+}
 
-			}
+function logout() {
+  f.fetchPost('/logout', {}, () => {
+    window.location = '/login.html';
+  });
+}
 
-		});
-
-	}
-
-	function addAddress(){
-
-		const regex = /^(?!\.)(?!.*\.\.)(?!.*\.$)[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]{1,64}$/;
-		if(regex.test(newAddressText)){
-
-			f.fetchPost('/addAddress', {address: newAddressText}, (data) => {
-
-				if(data == "exist"){
-					
-					dialog.alrt("address already exist");
-
-				}
-
-				if(data == "done"){
-				
-					newAddressText = "";
-					refreshAddress();
-
-				}
-
-			});
-
-		}else{
-
-			dialog.alrt("Invalid email address");
-
-		}
-
-	}
-
-	function deleteAddress(){
-
-		dialog.conf("Delete this address ?", (res) => {
-
-			if(res){
-
-				f.fetchPost('./deleteAddress', {address: selectedAddress}, (data) => {
-
-					if(data == "done"){
-
-						refreshAddress();
-
-					}	
-
-				});
-
-			}
-
-		})
-
-	}
-
-	function deleteEmails(){
-
-		dialog.conf("Delete all emails from this address ?", (res) => {
-
-			if(res){
-
-				f.fetchPost('./deleteEmails', {address: selectedAddress}, (data) => {
-
-					if(data == "done"){
-
-						dialog.alrt("Done")
-
-					}	
-
-				});
-
-			}
-
-		})
-
-	}
-
-	onMount(() => {
-
-		refreshAddress();
-
-	});
-
-
+onMount(() => {
+  f.getCurrentUser((user) => {
+    isAdmin = user && user.isAdmin;
+    if (isAdmin) {
+      refreshUsers();
+    }
+  });
+  f.fetchPost('/domain', {}, (data) => {
+    hostName = '@' + data;
+  });
+});
 </script>
 
 <main>
-
-	<div class="adaptWidth flexCenterCol fillHeight gap">
-
-		<div></div>
-
-		<!--New mails-->
-		<span>New address</span>
-		<div class="adaptWidthSmall" style="display: flex; flex-wrap: wrap">
-
-			<input bind:value={newAddressText} placeholder="New address" style="flex: 1">
-			<span>{hostName}</span>
-
-		</div>
-		<button on:click={addAddress} class="adaptWidthSmall">Add this address</button>
-		
-		<div style="height: 30px;"></div>
-
-		<!--List of existing addresses-->
-		<span>Manage addresses</span>
-		<div class="adaptWidthSmall" style="display: flex; flex-wrap: wrap">
-
-			<select bind:value={selectedAddress} style="flex: 1">
-
-				{#each addresses as address}
-
-					<option value={address.addr}>{address.addr}</option>
-
-				{/each}
-
-			</select>
-
-			<span>{hostName}</span>
-
-		</div>
-
-		<!--Delete selected address-->
-		<button disabled={addresses.length == 0} on:click={deleteAddress} class="adaptWidthSmall">Delete this address</button>
-		<button disabled={addresses.length == 0} on:click={deleteEmails} class="adaptWidthSmall">Delete all emails from this address</button>
-		<div style="flex: 1"></div>
-			<button on:click={()=>{window.location.replace('/')}} class="adaptWidthSmall" style="justify-content: flex-end">Back</button>
-		<div></div>
-
-	</div>
-
+  <div class="adaptWidth flexCenterCol fillHeight gap">
+    <div></div>
+    {#if isAdmin}
+      <span>Admin Panel</span>
+      {#if error}
+        <div style="color: red">{error}</div>
+      {/if}
+      <div class="adaptWidthSmall" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        <h3>Register New User</h3>
+        {#if regError}
+          <div style="color: red">{regError}</div>
+        {/if}
+        <input placeholder="Username" bind:value={regUsername}>
+        <input placeholder="Password" type="password" bind:value={regPassword}>
+        <label><input type="checkbox" bind:checked={regIsAdmin}> Admin</label>
+        <button on:click={registerUser}>Register User</button>
+      </div>
+      <div class="adaptWidthSmall" style="display: flex; flex-wrap: wrap">
+        <select bind:value={selectedUser} style="flex: 1">
+          <option value={null}>Select user</option>
+          {#each users as user}
+            <option value={user}>{user.username}</option>
+          {/each}
+        </select>
+      </div>
+      <button on:click={deleteUser} disabled={!selectedUser} class="adaptWidthSmall">Delete user</button>
+      <div class="adaptWidthSmall" style="display: flex; flex-wrap: wrap">
+        <input placeholder="New password" type="password" bind:value={newPassword} style="flex: 1">
+        <button on:click={changePassword} disabled={!selectedUser || !newPassword}>Change password</button>
+      </div>
+      <button on:click={logout} class="adaptWidthSmall">Logout</button>
+      <div style="height: 30px;"></div>
+    {/if}
+    <div></div>
+  </div>
 </main>
